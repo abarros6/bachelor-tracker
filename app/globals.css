@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg: #09090b;
+  --surface: #18181b;
+  --elevated: #27272a;
+  --amber: #f59e0b;
+  --emerald: #10b981;
+  --red: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background-color: var(--bg);
+  color: #fafafa;
+  font-family: 'Inter', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+.font-bebas {
+  font-family: 'Bebas Neue', sans-serif;
+}
+
+.amber-glow {
+  filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.7));
+}
+
+.amber-glow-sm {
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.5));
+}
+
+@keyframes pulse-glow {
+  0%, 100% { filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.6)); }
+  50% { filter: drop-shadow(0 0 24px rgba(245, 158, 11, 0.9)); }
+}
+
+.pulse-glow {
+  animation: pulse-glow 1s ease-in-out infinite;
+}
+
+/* Bottom nav safe area */
+.bottom-nav-padding {
+  padding-bottom: calc(68px + env(safe-area-inset-bottom));
+}
