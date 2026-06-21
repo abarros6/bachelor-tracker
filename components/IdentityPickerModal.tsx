@@ -79,7 +79,7 @@ export default function IdentityPickerModal() {
 
           <div className="relative mb-5">
             <select
-              className="w-full bg-raised text-hi rounded-xl px-4 py-3 text-base border border-line focus:outline-none focus:border-amber-500 appearance-none cursor-pointer transition-colors"
+              className="w-full bg-raised text-hi rounded-xl px-4 py-3 text-base border border-input focus:outline-none focus:border-amber-500 appearance-none cursor-pointer transition-colors"
               value={selected}
               onChange={(e) => setSelected(e.target.value)}
             >

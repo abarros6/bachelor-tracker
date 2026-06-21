@@ -54,7 +54,7 @@ export default function CountdownTimer() {
             </span>
           </div>
           {i < units.length - 1 && (
-            <span className="font-bebas text-4xl text-overlay leading-none mb-4 mx-0.5">:</span>
+            <span className="font-bebas text-4xl text-lo leading-none mb-4 mx-0.5">:</span>
           )}
         </div>
       ))}

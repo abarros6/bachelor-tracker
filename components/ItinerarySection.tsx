@@ -21,7 +21,7 @@ interface EditState {
   emoji: string;
 }
 
-const inputCls = 'w-full bg-raised text-hi rounded-lg px-3 py-2 text-sm border border-line focus:outline-none focus:border-amber-500 placeholder:text-lo transition-colors';
+const inputCls = 'w-full bg-raised text-hi rounded-lg px-3 py-2 text-sm border border-input focus:outline-none focus:border-amber-500 placeholder:text-mid transition-colors';
 
 export default function ItinerarySection() {
   const { isAdmin } = useIdentity();
@@ -90,7 +90,7 @@ export default function ItinerarySection() {
         <h2 className="font-bebas text-3xl text-hi tracking-wide">The Plan 🗓️</h2>
         <InfoTooltip
           content="The weekend itinerary. Times are approximate — just a guide for what's happening when."
-          align="left"
+         
         />
       </div>
 

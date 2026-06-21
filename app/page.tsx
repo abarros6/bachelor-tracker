@@ -70,8 +70,8 @@ export default function HomePage() {
           <div key={s.label} className="bg-card rounded-2xl py-4 px-2 text-center border border-line card-shadow relative">
             <p className="font-bebas text-3xl text-amber-500 leading-none">{s.value}</p>
             <div className="flex items-center justify-center gap-1 mt-1">
-              <p className="text-lo text-[10px] font-semibold uppercase tracking-wide">{s.label}</p>
-              <InfoTooltip content={s.tip} align="center" />
+              <p className="text-mid text-[10px] font-semibold uppercase tracking-wide">{s.label}</p>
+              <InfoTooltip content={s.tip} />
             </div>
           </div>
         ))}
@@ -90,15 +90,15 @@ export default function HomePage() {
           </div>
           <div className="flex gap-6 text-sm">
             <div>
-              <p className="text-lo text-xs uppercase tracking-wide font-semibold mb-0.5">Check-in</p>
+              <p className="text-mid text-xs uppercase tracking-wide font-semibold mb-0.5">Check-in</p>
               <p className="text-hi font-medium">Aug 7 · 3:00 PM</p>
             </div>
             <div>
-              <p className="text-lo text-xs uppercase tracking-wide font-semibold mb-0.5">Check-out</p>
+              <p className="text-mid text-xs uppercase tracking-wide font-semibold mb-0.5">Check-out</p>
               <p className="text-hi font-medium">Aug 9 · 11:00 AM</p>
             </div>
             <div>
-              <p className="text-lo text-xs uppercase tracking-wide font-semibold mb-0.5">Guests</p>
+              <p className="text-mid text-xs uppercase tracking-wide font-semibold mb-0.5">Guests</p>
               <p className="text-hi font-medium">16 guys</p>
             </div>
           </div>
@@ -122,7 +122,7 @@ export default function HomePage() {
               <h2 className="font-bebas text-2xl text-hi tracking-wide">Cost Splits</h2>
               <InfoTooltip
                 content="Each split tracks who has paid for a shared expense. Tap any card to see details and mark yourself as paid."
-                align="left"
+               
               />
             </div>
             <p className="text-lo text-xs mt-0.5">Tap a card to mark yourself as paid</p>
@@ -137,7 +137,7 @@ export default function HomePage() {
               </button>
               <InfoTooltip
                 content="Create a new expense to split evenly across all 16 guys. Only admins can create splits."
-                align="right"
+               
               />
             </div>
           )}

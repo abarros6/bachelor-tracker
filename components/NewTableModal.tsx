@@ -61,7 +61,7 @@ export default function NewTableModal({ onClose, onCreated }: Props) {
     }
   }
 
-  const inputClass = 'w-full bg-raised text-hi rounded-xl px-4 py-3 border border-line focus:outline-none focus:border-amber-500 placeholder:text-lo transition-colors text-sm';
+  const inputClass = 'w-full bg-raised text-hi rounded-xl px-4 py-3 border border-input focus:outline-none focus:border-amber-500 placeholder:text-mid transition-colors text-sm';
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm">

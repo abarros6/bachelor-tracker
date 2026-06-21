@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useIdentity } from '@/lib/identity';
 import { Suggestion, Participant } from '@/lib/types';
 import InfoTooltip from '@/components/InfoTooltip';
+import ConfirmModal from '@/components/ConfirmModal';
 
 export default function SuggestionsPage() {
   const { participantId, isAdmin, participant } = useIdentity();
@@ -13,6 +14,7 @@ export default function SuggestionsPage() {
   const [content, setContent] = useState('');
   const [anon, setAnon] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     load();
@@ -41,6 +43,12 @@ export default function SuggestionsPage() {
     load();
   }
 
+  async function deleteSuggestion(id: string) {
+    await supabase.from('suggestions').delete().eq('id', id);
+    setDeletingId(null);
+    load();
+  }
+
   async function toggleResolved(suggestion: Suggestion) {
     await supabase
       .from('suggestions')
@@ -60,7 +68,7 @@ export default function SuggestionsPage() {
       <div className="bg-card rounded-2xl p-5 border border-line card-shadow mb-6">
         <label className="text-xs font-semibold text-mid uppercase tracking-wide block mb-2">Your idea</label>
         <textarea
-          className="w-full bg-raised text-hi rounded-xl px-4 py-3 border border-line focus:outline-none focus:border-amber-500 placeholder:text-lo resize-none text-sm transition-colors"
+          className="w-full bg-raised text-hi rounded-xl px-4 py-3 border border-input focus:outline-none focus:border-amber-500 placeholder:text-mid resize-none text-sm transition-colors"
           rows={4}
           placeholder="What's on your mind? Activites, food, vibes..."
           value={content}
@@ -78,7 +86,7 @@ export default function SuggestionsPage() {
             </label>
             <InfoTooltip
               content="When on, your name won't appear with this suggestion — only Anthony (admin) can see all submissions."
-              align="left"
+             
             />
           </div>
 
@@ -137,8 +145,15 @@ export default function SuggestionsPage() {
                   </button>
                   <InfoTooltip
                     content={s.is_resolved ? 'Reopen this suggestion.' : 'Mark as addressed / done.'}
-                    align="right"
+
                   />
+                  <button
+                    onClick={() => setDeletingId(s.id)}
+                    className="text-red-400 hover:text-red-300 text-sm px-1 transition-colors"
+                    title="Delete suggestion"
+                  >
+                    ✕
+                  </button>
                 </div>
               )}
             </div>
@@ -155,6 +170,16 @@ export default function SuggestionsPage() {
           </div>
         )}
       </div>
+
+      {deletingId && (
+        <ConfirmModal
+          title="Delete Suggestion?"
+          message="This suggestion will be permanently removed."
+          confirmLabel="Delete"
+          onConfirm={() => deleteSuggestion(deletingId)}
+          onCancel={() => setDeletingId(null)}
+        />
+      )}
     </div>
   );
 }

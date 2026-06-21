@@ -4,61 +4,104 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Light mode (default) ── */
+/* ── Color tokens: light mode (default) ── */
 :root {
-  --c-base:    249 250 251;   /* zinc-50   */
-  --c-card:    255 255 255;   /* white     */
-  --c-raised:  244 244 245;   /* zinc-100  */
-  --c-overlay: 228 228 231;   /* zinc-200  */
-  --c-hi:      9 9 11;        /* zinc-950  */
-  --c-mid:     82 82 91;      /* zinc-600  */
-  --c-lo:      161 161 170;   /* zinc-400  */
-  --c-line:    228 228 231;   /* zinc-200  */
-  --amber-glow-filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.45));
-  --amber-glow-pulse-from: drop-shadow(0 0 6px rgba(245, 158, 11, 0.4));
-  --amber-glow-pulse-to: drop-shadow(0 0 16px rgba(245, 158, 11, 0.65));
-  --card-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+  --c-base:         #f9fafb;
+  --c-card:         #ffffff;
+  --c-raised:       #f4f4f5;
+  --c-overlay:      #e4e4e7;
+  --c-hi:           #09090b;
+  --c-mid:          #52525b;
+  --c-lo:           #a1a1aa;
+  --c-line:         #e4e4e7;
+  --c-input-border: #d4d4d8;   /* zinc-300 — more visible on light inputs */
+  --nav-bg:         rgba(249, 250, 251, 0.93);
+  --amber-glow-filter:        drop-shadow(0 0 8px rgba(245,158,11,.45));
+  --amber-glow-pulse-from:    drop-shadow(0 0 6px rgba(245,158,11,.4));
+  --amber-glow-pulse-to:      drop-shadow(0 0 16px rgba(245,158,11,.65));
+  --card-shadow: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
 }
 
-/* ── Dark mode ── */
+/* ── Color tokens: dark mode ── */
 .dark {
-  --c-base:    9 9 11;        /* zinc-950  */
-  --c-card:    24 24 27;      /* zinc-900  */
-  --c-raised:  39 39 42;      /* zinc-800  */
-  --c-overlay: 63 63 70;      /* zinc-700  */
-  --c-hi:      250 250 250;   /* zinc-50   */
-  --c-mid:     161 161 170;   /* zinc-400  */
-  --c-lo:      82 82 91;      /* zinc-600  */
-  --c-line:    39 39 42;      /* zinc-800  */
-  --amber-glow-filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.7));
-  --amber-glow-pulse-from: drop-shadow(0 0 12px rgba(245, 158, 11, 0.6));
-  --amber-glow-pulse-to: drop-shadow(0 0 24px rgba(245, 158, 11, 0.9));
+  --c-base:         #09090b;
+  --c-card:         #18181b;
+  --c-raised:       #27272a;
+  --c-overlay:      #3f3f46;
+  --c-hi:           #fafafa;
+  --c-mid:          #a1a1aa;
+  --c-lo:           #52525b;
+  --c-line:         #27272a;
+  --c-input-border: #52525b;   /* zinc-600 — visible on dark inputs */
+  --nav-bg:         rgba(9, 9, 11, 0.93);
+  --amber-glow-filter:        drop-shadow(0 0 16px rgba(245,158,11,.7));
+  --amber-glow-pulse-from:    drop-shadow(0 0 12px rgba(245,158,11,.6));
+  --amber-glow-pulse-to:      drop-shadow(0 0 24px rgba(245,158,11,.9));
   --card-shadow: none;
 }
 
 * { box-sizing: border-box; }
 
 html, body {
-  background-color: rgb(var(--c-base));
-  color: rgb(var(--c-hi));
+  background-color: var(--c-base);
+  color: var(--c-hi);
   font-family: 'Inter', sans-serif;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
 }
 
-/* Smooth theme transitions (only on manual toggle, not initial load) */
+/* ── Semantic color utilities ── */
+/* These are defined here because Tailwind JIT does not generate utilities
+   for colors defined as CSS var() references in tailwind.config.       */
+@layer utilities {
+  /* Backgrounds */
+  .bg-base    { background-color: var(--c-base); }
+  .bg-card    { background-color: var(--c-card); }
+  .bg-raised  { background-color: var(--c-raised); }
+  .bg-overlay { background-color: var(--c-overlay); }
+
+  /* Text */
+  .text-hi      { color: var(--c-hi); }
+  .text-mid     { color: var(--c-mid); }
+  .text-lo      { color: var(--c-lo); }
+  .text-overlay { color: var(--c-overlay); }
+
+  /* Borders */
+  .border-line    { border-color: var(--c-line); }
+  .border-overlay { border-color: var(--c-overlay); }
+  .border-input   { border-color: var(--c-input-border); }
+
+  /* Hover variants */
+  .hover\:bg-overlay:hover  { background-color: var(--c-overlay); }
+  .hover\:bg-raised:hover   { background-color: var(--c-raised); }
+  .hover\:text-hi:hover     { color: var(--c-hi); }
+
+  /* Placeholder — use text-mid for readable placeholder text */
+  .placeholder\:text-mid::placeholder { color: var(--c-mid); }
+  /* text-lo placeholder kept for reference but not used on inputs */
+  .placeholder\:text-lo::placeholder  { color: var(--c-lo); }
+}
+
+/* ── Theme transition (applied after first load to avoid flash) ── */
 .theme-ready html,
 .theme-ready body,
-.theme-ready .bg-card,
 .theme-ready .bg-base,
-.theme-ready .bg-raised {
-  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+.theme-ready .bg-card,
+.theme-ready .bg-raised,
+.theme-ready .bg-overlay,
+.theme-ready .nav-backdrop {
+  transition: background-color 0.25s ease, border-color 0.2s ease;
+}
+.theme-ready .text-hi,
+.theme-ready .text-mid,
+.theme-ready .text-lo {
+  transition: color 0.2s ease;
 }
 
 .font-bebas { font-family: 'Bebas Neue', sans-serif; }
 
-.amber-glow     { filter: var(--amber-glow-filter); }
-.amber-glow-sm  { filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.5)); }
+.amber-glow    { filter: var(--amber-glow-filter); }
+.amber-glow-sm { filter: drop-shadow(0 0 6px rgba(245,158,11,.5)); }
 
 @keyframes pulse-glow {
   0%, 100% { filter: var(--amber-glow-pulse-from); }
@@ -66,12 +109,10 @@ html, body {
 }
 .pulse-glow { animation: pulse-glow 1s ease-in-out infinite; }
 
-/* Nav backdrop */
-.nav-backdrop {
-  background-color: rgb(var(--c-base) / 0.93);
-}
+/* Nav backdrop with opacity */
+.nav-backdrop { background-color: var(--nav-bg); }
 
-/* Card elevation shadow in light mode */
+/* Card elevation shadow (visible in light mode, none in dark) */
 .card-shadow { box-shadow: var(--card-shadow); }
 
 /* Bottom nav safe area */

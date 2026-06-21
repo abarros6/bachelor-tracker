@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { Table, Payment, Participant } from '@/lib/types';
 import { useIdentity } from '@/lib/identity';
 import InfoTooltip from '@/components/InfoTooltip';
+import ConfirmModal from '@/components/ConfirmModal';
 
 interface PaymentRow {
   payment: Payment;
@@ -22,6 +23,7 @@ export default function TableDetailPage() {
   const [editingCost, setEditingCost] = useState(false);
   const [costInput, setCostInput] = useState('');
   const [loading, setLoading] = useState(true);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -73,10 +75,10 @@ export default function TableDetailPage() {
       .eq('id', row.payment.id);
   }
 
-  async function markSelfPaid() {
-    const myRow = rows.find((r) => r.participant.id === participantId);
-    if (!myRow || myRow.payment.has_paid) return;
-    await togglePaid(myRow);
+  async function deleteTable() {
+    await supabase.from('payments').delete().eq('table_id', id);
+    await supabase.from('tables').delete().eq('id', id);
+    router.back();
   }
 
   async function saveCost() {
@@ -116,7 +118,17 @@ export default function TableDetailPage() {
 
       {/* Summary card */}
       <div className="bg-card rounded-2xl p-5 border border-line card-shadow mb-4">
-        <h1 className="font-bebas text-3xl text-hi tracking-wide mb-0.5">{table.title}</h1>
+        <div className="flex items-start justify-between gap-2 mb-0.5">
+          <h1 className="font-bebas text-3xl text-hi tracking-wide">{table.title}</h1>
+          {isAdmin && (
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="text-red-400 text-xs font-semibold hover:text-red-300 transition-colors shrink-0 mt-1"
+            >
+              Delete
+            </button>
+          )}
+        </div>
         {table.description && (
           <p className="text-mid text-sm mb-3">{table.description}</p>
         )}
@@ -127,7 +139,7 @@ export default function TableDetailPage() {
             <div className="flex gap-2 items-center">
               <input
                 type="number"
-                className="bg-raised text-hi rounded-lg px-3 py-2 w-32 border border-amber-500 focus:outline-none text-sm"
+                className="bg-raised text-hi rounded-lg px-3 py-2 w-32 border border-amber-500 focus:outline-none text-sm placeholder:text-mid"
                 value={costInput}
                 onChange={(e) => setCostInput(e.target.value)}
                 placeholder="Total cost"
@@ -189,22 +201,33 @@ export default function TableDetailPage() {
       ) : (
         <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-2.5 mb-4 flex items-center gap-2">
           <span className="text-emerald-500 text-sm">✓</span>
-          <p className="text-hi text-xs font-medium">You're paid up for this split!</p>
+          <p className="text-hi text-xs font-medium">You're paid up! Tap your row to mark yourself unpaid if needed.</p>
         </div>
+      )}
+
+      {confirmDelete && (
+        <ConfirmModal
+          title="Delete Split?"
+          message={`"${table.title}" and all payment records will be permanently deleted.`}
+          confirmLabel="Delete Split"
+          onConfirm={deleteTable}
+          onCancel={() => setConfirmDelete(false)}
+        />
       )}
 
       {/* Participant rows */}
       <div className="space-y-2">
         {rows.map((row) => {
           const isMe = row.participant.id === participantId;
+          const canToggle = isAdmin || isMe;
 
           return (
             <div
               key={row.participant.id}
-              onClick={() => isAdmin && togglePaid(row)}
+              onClick={() => canToggle && togglePaid(row)}
               className={`flex items-center justify-between bg-card rounded-2xl px-4 py-3 border transition-all card-shadow ${
                 isMe ? 'border-amber-500/40' : 'border-line'
-              } ${isAdmin ? 'cursor-pointer hover:border-amber-500/30 active:scale-[0.98]' : ''}`}
+              } ${canToggle ? 'cursor-pointer hover:border-amber-500/30 active:scale-[0.98]' : ''}`}
             >
               <div className="flex-1 min-w-0">
                 <p className={`font-medium text-sm ${isMe ? 'text-amber-500' : 'text-hi'}`}>
@@ -229,12 +252,16 @@ export default function TableDetailPage() {
                     Unpaid
                   </span>
                 )}
-                {isMe && !row.payment.has_paid && !isAdmin && (
+                {isMe && !isAdmin && (
                   <button
-                    onClick={(e) => { e.stopPropagation(); markSelfPaid(); }}
-                    className="bg-amber-500 text-[#09090b] font-bold text-xs px-3 py-1.5 rounded-lg active:scale-95 transition-transform whitespace-nowrap"
+                    onClick={(e) => { e.stopPropagation(); togglePaid(row); }}
+                    className={`font-bold text-xs px-3 py-1.5 rounded-lg active:scale-95 transition-transform whitespace-nowrap ${
+                      row.payment.has_paid
+                        ? 'bg-raised text-mid border border-line'
+                        : 'bg-amber-500 text-[#09090b]'
+                    }`}
                   >
-                    Mark Paid
+                    {row.payment.has_paid ? 'Mark Unpaid' : 'Mark Paid'}
                   </button>
                 )}
               </div>

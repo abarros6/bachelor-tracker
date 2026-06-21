@@ -9,6 +9,7 @@ interface IdentityCtx {
   participantId: string | null;
   isAdmin: boolean;
   setParticipantId: (id: string) => void;
+  refreshParticipant: () => Promise<void>;
   loading: boolean;
 }
 
@@ -17,6 +18,7 @@ const Ctx = createContext<IdentityCtx>({
   participantId: null,
   isAdmin: false,
   setParticipantId: () => {},
+  refreshParticipant: async () => {},
   loading: true,
 });
 
@@ -53,6 +55,16 @@ export function IdentityProvider({ children }: { children: ReactNode }) {
     setParticipantIdState(id);
   }
 
+  async function refreshParticipant() {
+    if (!participantId) return;
+    const { data } = await supabase
+      .from('participants')
+      .select('*')
+      .eq('id', participantId)
+      .single();
+    setParticipant(data as Participant | null);
+  }
+
   return (
     <Ctx.Provider
       value={{
@@ -60,6 +72,7 @@ export function IdentityProvider({ children }: { children: ReactNode }) {
         participantId,
         isAdmin: participant?.is_admin ?? false,
         setParticipantId,
+        refreshParticipant,
         loading,
       }}
     >

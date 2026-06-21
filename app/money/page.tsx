@@ -45,7 +45,7 @@ export default function MoneyPage() {
             </button>
             <InfoTooltip
               content="Create a new shared expense. It will be split evenly across all 16 guys."
-              align="right"
+             
             />
           </div>
         )}
