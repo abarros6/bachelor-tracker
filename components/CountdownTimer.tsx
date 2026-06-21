@@ -12,23 +12,19 @@ export default function CountdownTimer() {
   const [diff, setDiff] = useState<number | null>(null);
 
   useEffect(() => {
-    function tick() {
-      setDiff(PARTY_DATE - Date.now());
-    }
+    function tick() { setDiff(PARTY_DATE - Date.now()); }
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
 
-  if (diff === null) return null;
+  if (diff === null) return <div className="h-20" />;
 
   if (diff <= 0) {
     return (
-      <div className="text-center py-4">
-        <p className="font-bebas text-5xl text-[#f59e0b] amber-glow tracking-wider">
-          The party is ON 🎉
-        </p>
-      </div>
+      <p className="font-bebas text-4xl text-amber-500 amber-glow tracking-wider">
+        The party is ON 🎉
+      </p>
     );
   }
 
@@ -38,25 +34,28 @@ export default function CountdownTimer() {
   const min = Math.floor((totalSec % 3600) / 60);
   const sec = totalSec % 60;
 
+  const units = [
+    { val: days, label: 'days' },
+    { val: hrs, label: 'hrs' },
+    { val: min, label: 'min' },
+    { val: sec, label: 'sec' },
+  ];
+
   return (
-    <div className="flex justify-center gap-2 sm:gap-4 text-[#f59e0b] amber-glow select-none">
-      {[
-        { val: days, label: 'days' },
-        { val: hrs, label: 'hrs' },
-        { val: min, label: 'min' },
-        { val: sec, label: 'sec' },
-      ].map(({ val, label }, i) => (
-        <div key={label} className="flex flex-col items-center">
-          <span
-            className={`font-bebas text-5xl sm:text-7xl leading-none tracking-wide ${
-              label === 'sec' ? 'pulse-glow' : ''
-            }`}
-          >
-            {pad(val)}
-          </span>
-          <span className="text-[#a1a1aa] text-xs uppercase tracking-widest font-medium mt-1">
-            {label}
-          </span>
+    <div className="inline-flex items-end gap-1 select-none">
+      {units.map(({ val, label }, i) => (
+        <div key={label} className="flex items-end gap-1">
+          <div className="flex flex-col items-center">
+            <span className={`font-bebas text-6xl leading-none text-amber-500 amber-glow ${label === 'sec' ? 'pulse-glow' : ''}`}>
+              {pad(val)}
+            </span>
+            <span className="text-lo text-[10px] uppercase tracking-widest font-semibold mt-1">
+              {label}
+            </span>
+          </div>
+          {i < units.length - 1 && (
+            <span className="font-bebas text-4xl text-overlay leading-none mb-4 mx-0.5">:</span>
+          )}
         </div>
       ))}
     </div>

@@ -32,11 +32,10 @@ const ITINERARY = [
 ];
 
 export async function runSeed() {
-  // Seed participants if none exist
-  const { data: existingParticipants } = await supabase.from('participants').select('id').limit(1);
-  if (!existingParticipants || existingParticipants.length === 0) {
-    await supabase.from('participants').insert(PARTICIPANTS);
-  }
+  // Upsert participants — safe to call multiple times
+  await supabase
+    .from('participants')
+    .upsert(PARTICIPANTS, { onConflict: 'name', ignoreDuplicates: true });
 
   // Seed itinerary if none exists
   const { data: existingItinerary } = await supabase.from('itinerary_items').select('id').limit(1);

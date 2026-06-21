@@ -9,36 +9,31 @@ interface Props {
 }
 
 export default function TableCard({ table, payments }: Props) {
-  const total = payments.length || 16;
   const paid = payments.filter((p) => p.has_paid).length;
-  const pct = total > 0 ? (paid / total) * 100 : 0;
-  const perPerson = table.total_cost ? (table.total_cost / 16).toFixed(2) : null;
+  const pct = (paid / 16) * 100;
+  const perPerson = table.total_cost ? `$${(table.total_cost / 16).toFixed(2)}/ea` : 'TBD';
 
   return (
     <Link href={`/money/${table.id}`}>
-      <div className="bg-[#18181b] rounded-2xl p-4 border border-[#27272a] hover:border-[#f59e0b]/40 transition-colors active:scale-[0.98] transition-transform">
-        <div className="flex items-start justify-between mb-1">
-          <h3 className="font-semibold text-white text-base leading-tight flex-1 pr-2">
-            {table.title}
-          </h3>
-          {perPerson && (
-            <span className="text-[#f59e0b] font-bold text-sm whitespace-nowrap">
-              ${perPerson}/ea
-            </span>
-          )}
+      <div className="bg-card rounded-2xl p-4 border border-line card-shadow hover:border-amber-500/30 transition-all active:scale-[0.98]">
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <h3 className="font-semibold text-hi text-sm leading-snug">{table.title}</h3>
+          <span className={`font-bold text-sm whitespace-nowrap shrink-0 ${table.total_cost ? 'text-amber-500' : 'text-mid'}`}>
+            {perPerson}
+          </span>
         </div>
         {table.description && (
-          <p className="text-[#a1a1aa] text-sm mb-3 line-clamp-2">{table.description}</p>
+          <p className="text-lo text-xs mb-3 line-clamp-1">{table.description}</p>
         )}
-        <div className="flex items-center gap-3 mt-3">
-          <div className="flex-1 h-2 bg-[#27272a] rounded-full overflow-hidden">
+        <div className="flex items-center gap-3 mt-2">
+          <div className="flex-1 h-1.5 bg-raised rounded-full overflow-hidden">
             <div
-              className="h-full bg-[#10b981] rounded-full transition-all duration-500"
+              className="h-full bg-emerald-500 rounded-full transition-all duration-500"
               style={{ width: `${pct}%` }}
             />
           </div>
-          <span className="text-sm font-medium text-[#a1a1aa] whitespace-nowrap">
-            <span className="text-white">{paid}</span> / {total} paid
+          <span className="text-xs text-mid whitespace-nowrap">
+            <span className="text-hi font-semibold">{paid}</span>/16 paid
           </span>
         </div>
       </div>

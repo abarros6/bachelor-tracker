@@ -20,81 +20,116 @@ export default function NewTableModal({ onClose, onCreated }: Props) {
     if (!title.trim() || !participantId) return;
     setSaving(true);
 
-    const { data: newTable } = await supabase
-      .from('tables')
-      .insert({
-        title: title.trim(),
-        description: description.trim() || null,
-        total_cost: cost ? parseFloat(cost) : null,
-        created_by: participantId,
-      })
-      .select()
-      .single();
+    try {
+      const { data: newTable, error: tableError } = await supabase
+        .from('tables')
+        .insert({
+          title: title.trim(),
+          description: description.trim() || null,
+          total_cost: cost ? parseFloat(cost) : null,
+          created_by: participantId,
+        })
+        .select()
+        .single();
 
-    if (newTable) {
-      const { data: participants } = await supabase.from('participants').select('id');
-      if (participants) {
-        const payments = participants.map((p) => ({
-          table_id: newTable.id,
-          participant_id: p.id,
-          has_paid: false,
-        }));
-        await supabase.from('payments').insert(payments);
+      if (tableError) throw tableError;
+
+      if (newTable) {
+        const { data: participants, error: partError } = await supabase
+          .from('participants')
+          .select('id');
+        if (partError) throw partError;
+
+        if (participants && participants.length > 0) {
+          const payments = participants.map((p) => ({
+            table_id: newTable.id,
+            participant_id: p.id,
+            has_paid: false,
+          }));
+          const { error: payError } = await supabase.from('payments').insert(payments);
+          if (payError) throw payError;
+        }
       }
-    }
 
-    setSaving(false);
-    onCreated();
-    onClose();
+      onCreated();
+      onClose();
+    } catch (e: any) {
+      console.error('Failed to create split:', e);
+      alert(`Error: ${e?.message ?? 'Something went wrong'}`);
+    } finally {
+      setSaving(false);
+    }
   }
 
+  const inputClass = 'w-full bg-raised text-hi rounded-xl px-4 py-3 border border-line focus:outline-none focus:border-amber-500 placeholder:text-lo transition-colors text-sm';
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60">
-      <div className="w-full max-w-lg bg-[#18181b] rounded-t-3xl sm:rounded-2xl p-6 border border-[#27272a]">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="w-full max-w-lg bg-card rounded-t-3xl sm:rounded-2xl p-6 border border-line card-shadow">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="font-bebas text-2xl text-[#f59e0b] tracking-wide">New Cost Split</h2>
-          <button onClick={onClose} className="text-[#a1a1aa] text-2xl leading-none p-1">✕</button>
+          <div>
+            <h2 className="font-bebas text-2xl text-amber-500 tracking-wide">New Cost Split</h2>
+            <p className="text-lo text-xs mt-0.5">Split evenly across all 16 guys</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-raised flex items-center justify-center text-mid hover:text-hi transition-colors"
+          >
+            ✕
+          </button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-[#a1a1aa] block mb-1">Title *</label>
+            <label className="text-xs font-semibold text-mid uppercase tracking-wide block mb-1.5">
+              Title <span className="text-amber-500">*</span>
+            </label>
             <input
-              className="w-full bg-[#27272a] text-white rounded-xl px-4 py-3 border border-[#3f3f46] focus:outline-none focus:border-[#f59e0b] placeholder:text-[#52525b]"
-              placeholder="e.g. Gas money 🚗"
+              className={inputClass}
+              placeholder="e.g. Gas money 🚗, Airbnb deposit…"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              autoFocus
             />
           </div>
+
           <div>
-            <label className="text-sm font-medium text-[#a1a1aa] block mb-1">Description</label>
+            <label className="text-xs font-semibold text-mid uppercase tracking-wide block mb-1.5">
+              Description <span className="text-lo font-normal">(optional)</span>
+            </label>
             <input
-              className="w-full bg-[#27272a] text-white rounded-xl px-4 py-3 border border-[#3f3f46] focus:outline-none focus:border-[#f59e0b] placeholder:text-[#52525b]"
-              placeholder="Optional details"
+              className={inputClass}
+              placeholder="Any extra context"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
+
           <div>
-            <label className="text-sm font-medium text-[#a1a1aa] block mb-1">Total Cost ($)</label>
+            <label className="text-xs font-semibold text-mid uppercase tracking-wide block mb-1.5">
+              Total Cost ($) <span className="text-lo font-normal">(optional)</span>
+            </label>
             <input
               type="number"
               min="0"
               step="0.01"
-              className="w-full bg-[#27272a] text-white rounded-xl px-4 py-3 border border-[#3f3f46] focus:outline-none focus:border-[#f59e0b] placeholder:text-[#52525b]"
+              className={inputClass}
               placeholder="Leave blank to set later"
               value={cost}
               onChange={(e) => setCost(e.target.value)}
             />
+            <p className="text-lo text-xs mt-1.5">
+              You can always update the total cost after creating the split.
+            </p>
           </div>
         </div>
 
         <button
           onClick={handleSubmit}
           disabled={!title.trim() || saving}
-          className="mt-6 w-full bg-[#f59e0b] text-[#09090b] font-bold text-lg py-4 rounded-xl disabled:opacity-40 active:scale-95 transition-transform"
+          className="mt-6 w-full bg-amber-500 text-[#09090b] font-bold text-lg py-4 rounded-xl disabled:opacity-40 active:scale-95 transition-transform"
         >
-          {saving ? 'Creating...' : 'Create Split 💰'}
+          {saving ? 'Creating…' : 'Create Split 💰'}
         </button>
       </div>
     </div>

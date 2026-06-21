@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Table, Payment, Participant } from '@/lib/types';
 import { useIdentity } from '@/lib/identity';
+import InfoTooltip from '@/components/InfoTooltip';
 
 interface PaymentRow {
   payment: Payment;
@@ -87,102 +88,131 @@ export default function TableDetailPage() {
   }
 
   const paid = rows.filter((r) => r.payment.has_paid).length;
-  const total = rows.length;
-  const pct = total > 0 ? (paid / total) * 100 : 0;
+  const total = 16;
+  const pct = (paid / total) * 100;
   const perPerson = table?.total_cost ? (table.total_cost / 16).toFixed(2) : null;
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-[#a1a1aa]">Loading...</p>
+        <p className="text-mid text-sm">Loading…</p>
       </div>
     );
   }
 
   if (!table) return null;
 
+  const myRow = rows.find((r) => r.participant.id === participantId);
+  const iAlreadyPaid = myRow?.payment.has_paid ?? false;
+
   return (
-    <div className="px-4 pt-6 max-w-xl mx-auto">
+    <div className="px-4 pt-6 max-w-xl mx-auto pb-8">
       <button
         onClick={() => router.back()}
-        className="text-[#a1a1aa] text-sm mb-4 flex items-center gap-1"
+        className="text-mid text-sm mb-4 flex items-center gap-1 hover:text-hi transition-colors"
       >
         ← Back
       </button>
 
-      <div className="bg-[#18181b] rounded-2xl p-5 border border-[#27272a] mb-6">
-        <h1 className="font-bebas text-3xl text-white tracking-wide mb-1">{table.title}</h1>
+      {/* Summary card */}
+      <div className="bg-card rounded-2xl p-5 border border-line card-shadow mb-4">
+        <h1 className="font-bebas text-3xl text-hi tracking-wide mb-0.5">{table.title}</h1>
         {table.description && (
-          <p className="text-[#a1a1aa] text-sm mb-3">{table.description}</p>
+          <p className="text-mid text-sm mb-3">{table.description}</p>
         )}
 
-        <div className="flex items-center gap-3 mb-3">
+        {/* Cost row */}
+        <div className="flex items-center gap-3 mb-4">
           {editingCost ? (
             <div className="flex gap-2 items-center">
               <input
                 type="number"
-                className="bg-[#27272a] text-white rounded-lg px-3 py-2 w-32 border border-[#f59e0b] focus:outline-none text-sm"
+                className="bg-raised text-hi rounded-lg px-3 py-2 w-32 border border-amber-500 focus:outline-none text-sm"
                 value={costInput}
                 onChange={(e) => setCostInput(e.target.value)}
                 placeholder="Total cost"
                 autoFocus
               />
-              <button onClick={saveCost} className="bg-[#f59e0b] text-[#09090b] font-bold px-3 py-2 rounded-lg text-sm">Save</button>
-              <button onClick={() => setEditingCost(false)} className="text-[#a1a1aa] px-2 py-2 text-sm">Cancel</button>
+              <button onClick={saveCost} className="bg-amber-500 text-[#09090b] font-bold px-3 py-2 rounded-lg text-sm">Save</button>
+              <button onClick={() => setEditingCost(false)} className="text-mid px-2 py-2 text-sm hover:text-hi">Cancel</button>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <span className="text-[#a1a1aa] text-sm">
-                Total: <span className="text-white font-semibold">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-mid text-sm">
+                Total: <span className="text-hi font-semibold">
                   {table.total_cost ? `$${table.total_cost.toFixed(2)}` : 'TBD'}
                 </span>
               </span>
               {perPerson && (
-                <span className="text-[#a1a1aa] text-sm">
-                  · <span className="text-[#f59e0b] font-bold">${perPerson}/person</span>
+                <span className="text-mid text-sm">
+                  · <span className="text-amber-500 font-bold">${perPerson}/person</span>
                 </span>
               )}
               {isAdmin && (
-                <button
-                  onClick={() => { setCostInput(table.total_cost?.toString() || ''); setEditingCost(true); }}
-                  className="text-[#a1a1aa] hover:text-[#f59e0b] text-sm ml-1"
-                >
-                  ✏️
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => { setCostInput(table.total_cost?.toString() || ''); setEditingCost(true); }}
+                    className="text-mid hover:text-amber-500 text-sm transition-colors"
+                    title="Edit total cost"
+                  >
+                    ✏️
+                  </button>
+                  <InfoTooltip content="Update the total cost for this split. The per-person amount will recalculate automatically." />
+                </div>
               )}
             </div>
           )}
         </div>
 
+        {/* Progress bar */}
         <div className="flex items-center gap-3">
-          <div className="flex-1 h-2 bg-[#27272a] rounded-full overflow-hidden">
-            <div className="h-full bg-[#10b981] rounded-full transition-all" style={{ width: `${pct}%` }} />
+          <div className="flex-1 h-2 bg-raised rounded-full overflow-hidden">
+            <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
           </div>
-          <span className="text-sm text-[#a1a1aa] whitespace-nowrap">
-            <span className="text-white font-semibold">{paid}</span> / {total} paid
+          <span className="text-sm text-mid whitespace-nowrap">
+            <span className="text-hi font-semibold">{paid}</span> / {total} paid
           </span>
         </div>
       </div>
 
+      {/* Instruction banner */}
+      {isAdmin ? (
+        <div className="bg-raised border border-line rounded-xl px-4 py-2.5 mb-4 flex items-center gap-2">
+          <span className="text-amber-500 text-sm">⚙️</span>
+          <p className="text-mid text-xs">Admin: tap any row to toggle payment status.</p>
+        </div>
+      ) : !iAlreadyPaid ? (
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-2.5 mb-4 flex items-center gap-2">
+          <span className="text-amber-500 text-sm">👇</span>
+          <p className="text-hi text-xs">Find your name below and tap <strong>Mark Paid</strong> once you've sent the money.</p>
+        </div>
+      ) : (
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-2.5 mb-4 flex items-center gap-2">
+          <span className="text-emerald-500 text-sm">✓</span>
+          <p className="text-hi text-xs font-medium">You're paid up for this split!</p>
+        </div>
+      )}
+
+      {/* Participant rows */}
       <div className="space-y-2">
         {rows.map((row) => {
           const isMe = row.participant.id === participantId;
-          const canToggle = isAdmin || (isMe && !row.payment.has_paid);
 
           return (
             <div
               key={row.participant.id}
               onClick={() => isAdmin && togglePaid(row)}
-              className={`flex items-center justify-between bg-[#18181b] rounded-2xl px-4 py-3 border transition-colors ${
-                isMe ? 'border-[#f59e0b]/40' : 'border-[#27272a]'
-              } ${isAdmin ? 'cursor-pointer hover:border-[#f59e0b]/40 active:scale-[0.98]' : ''}`}
+              className={`flex items-center justify-between bg-card rounded-2xl px-4 py-3 border transition-all card-shadow ${
+                isMe ? 'border-amber-500/40' : 'border-line'
+              } ${isAdmin ? 'cursor-pointer hover:border-amber-500/30 active:scale-[0.98]' : ''}`}
             >
-              <div className="flex-1">
-                <p className={`font-medium text-sm ${isMe ? 'text-[#f59e0b]' : 'text-white'}`}>
-                  {row.participant.name} {isMe && '(you)'}
+              <div className="flex-1 min-w-0">
+                <p className={`font-medium text-sm ${isMe ? 'text-amber-500' : 'text-hi'}`}>
+                  {row.participant.name}
+                  {isMe && <span className="text-mid font-normal"> (you)</span>}
                 </p>
                 {row.payment.paid_at && (
-                  <p className="text-[#52525b] text-xs mt-0.5">
+                  <p className="text-lo text-xs mt-0.5">
                     {new Date(row.payment.paid_at).toLocaleDateString('en-CA', {
                       month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
                     })}
@@ -191,18 +221,18 @@ export default function TableDetailPage() {
               </div>
               <div className="flex items-center gap-2">
                 {row.payment.has_paid ? (
-                  <span className="bg-[#10b981]/20 text-[#10b981] text-xs font-bold px-3 py-1 rounded-full">
+                  <span className="bg-emerald-500/15 text-emerald-500 text-xs font-bold px-3 py-1 rounded-full">
                     ✓ Paid
                   </span>
                 ) : (
-                  <span className="bg-red-500/20 text-red-400 text-xs font-bold px-3 py-1 rounded-full">
+                  <span className="bg-red-500/15 text-red-400 text-xs font-bold px-3 py-1 rounded-full">
                     Unpaid
                   </span>
                 )}
                 {isMe && !row.payment.has_paid && !isAdmin && (
                   <button
                     onClick={(e) => { e.stopPropagation(); markSelfPaid(); }}
-                    className="bg-[#f59e0b] text-[#09090b] font-bold text-xs px-3 py-1.5 rounded-lg active:scale-95 transition-transform whitespace-nowrap"
+                    className="bg-amber-500 text-[#09090b] font-bold text-xs px-3 py-1.5 rounded-lg active:scale-95 transition-transform whitespace-nowrap"
                   >
                     Mark Paid
                   </button>

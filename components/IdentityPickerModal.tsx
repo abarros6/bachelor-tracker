@@ -1,64 +1,102 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useIdentity } from '@/lib/identity';
-import { Participant } from '@/lib/types';
+
+const NAMES = [
+  'Andrew Coelho',
+  'Angjelo Prifti',
+  'Anthony Barros',
+  'Anthony Rigakos',
+  'Ben Dunn',
+  'Cleon',
+  'Conor',
+  'Ed Moore',
+  'Jordan Khan',
+  'Julian Ilkiy',
+  'Lukasch',
+  'Lukas Martinovic',
+  'Nelson Santos',
+  'Petar Pavkovic',
+  'Roman Gulko',
+  'Tristan',
+];
 
 export default function IdentityPickerModal() {
   const { participantId, setParticipantId, loading } = useIdentity();
-  const [participants, setParticipants] = useState<Participant[]>([]);
   const [selected, setSelected] = useState('');
-  const [fetching, setFetching] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    supabase
-      .from('participants')
-      .select('*')
-      .order('name')
-      .then(({ data }) => {
-        setParticipants((data as Participant[]) || []);
-        setFetching(false);
-      });
-  }, []);
-
-  if (loading || fetching) return null;
+  if (loading) return null;
   if (participantId) return null;
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!selected) return;
-    setParticipantId(selected);
+    setSubmitting(true);
+    try {
+      let { data } = await supabase
+        .from('participants')
+        .select('id')
+        .eq('name', selected)
+        .maybeSingle();
+
+      if (!data) {
+        const { data: inserted, error } = await supabase
+          .from('participants')
+          .insert({ name: selected, is_admin: selected === 'Anthony Barros' })
+          .select('id')
+          .single();
+        if (error) throw error;
+        data = inserted;
+      }
+
+      if (data) {
+        import('@/lib/seed').then(({ runSeed }) => runSeed());
+        setParticipantId(data.id);
+      }
+    } catch (e) {
+      console.error('Login failed:', e);
+      alert('Something went wrong — check the console.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#09090b] px-6">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-base px-6">
       <div className="w-full max-w-sm text-center">
-        <div className="mb-2 text-6xl">🍺</div>
-        <h1 className="font-bebas text-5xl text-[#f59e0b] amber-glow mb-2 tracking-wide">
+        <div className="mb-3 text-6xl">🍺</div>
+        <h1 className="font-bebas text-5xl text-amber-500 amber-glow mb-2 tracking-wide">
           Welcome to Alex&apos;s Bach
         </h1>
-        <p className="text-[#a1a1aa] text-lg mb-8">Muskoka · August 7–9, 2025</p>
+        <p className="text-mid text-base mb-1">Muskoka · August 7–9, 2025</p>
+        <p className="text-lo text-sm mb-8">No passwords — just pick your name and we'll remember you.</p>
 
-        <div className="bg-[#18181b] rounded-2xl p-6 border border-[#27272a]">
-          <p className="text-white font-semibold text-xl mb-4">Who are you?</p>
-          <select
-            className="w-full bg-[#27272a] text-white rounded-xl px-4 py-3 text-base border border-[#3f3f46] focus:outline-none focus:border-[#f59e0b] mb-6 appearance-none"
-            value={selected}
-            onChange={(e) => setSelected(e.target.value)}
-          >
-            <option value="">Select your name...</option>
-            {participants.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+        <div className="bg-card rounded-2xl p-6 border border-line card-shadow">
+          <p className="text-hi font-semibold text-lg mb-1">Who are you?</p>
+          <p className="text-lo text-xs mb-4">Select your name from the list below</p>
+
+          <div className="relative mb-5">
+            <select
+              className="w-full bg-raised text-hi rounded-xl px-4 py-3 text-base border border-line focus:outline-none focus:border-amber-500 appearance-none cursor-pointer transition-colors"
+              value={selected}
+              onChange={(e) => setSelected(e.target.value)}
+            >
+              <option value="">Select your name...</option>
+              {NAMES.map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-mid text-xs">▼</span>
+          </div>
+
           <button
             onClick={handleSubmit}
-            disabled={!selected}
-            className="w-full bg-[#f59e0b] text-[#09090b] font-bold text-xl py-4 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 transition-transform"
+            disabled={!selected || submitting}
+            className="w-full bg-amber-500 text-[#09090b] font-bold text-lg py-4 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 transition-transform"
           >
-            Let&apos;s Go 🔥
+            {submitting ? 'Loading...' : "Let's Go 🔥"}
           </button>
         </div>
       </div>
